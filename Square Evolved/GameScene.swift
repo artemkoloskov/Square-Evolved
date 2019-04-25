@@ -13,6 +13,12 @@ class GameScene: SKScene {
     
     var entities = [GKEntity]()
     var graphs = [String : GKGraph]()
+    var protoSquare: ProtoSquare? = nil
+    var cellWidth: CGFloat? = 3
+    var cellHeight: CGFloat? = 3
+    
+    let gameLayer = SKNode()
+    let cellsLayer = SKNode()
     
     private var lastUpdateTime : TimeInterval = 0
     private var label : SKLabelNode?
@@ -20,6 +26,18 @@ class GameScene: SKScene {
     
     override func sceneDidLoad() {
 
+        anchorPoint = CGPoint(x: 0, y: 0.25)
+        
+        gameLayer.zPosition = 2
+        addChild(gameLayer)
+        
+        let layerPosition = CGPoint( x: -cellWidth! * CGFloat(50) / 2.0, y: -cellHeight! * CGFloat(50) / 2.0)
+        
+        cellsLayer.position = layerPosition
+        cellsLayer.zPosition = 3
+        addChild(cellsLayer)
+        
+        
         self.lastUpdateTime = 0
         
         // Get label node from scene and store it for use later
@@ -43,6 +61,31 @@ class GameScene: SKScene {
         }
     }
     
+    func attachSpritesTo (square: ProtoSquare) -> Void {
+        
+        for i in 0..<square.squareDimension {
+            for j in 0..<square.squareDimension {
+                var sprite: SKSpriteNode
+                
+                if square.bodyArray[i,j]! {
+                    sprite = SKSpriteNode.init(color: UIColor.black, size: CGSize(width: cellWidth!, height: cellHeight!))
+                }
+                else {
+                    sprite = SKSpriteNode.init(color: UIColor.white, size: CGSize(width: cellWidth!, height: cellHeight!))
+                }
+                
+                sprite.position = pointFor(column: i, row: j)
+                
+                gameLayer.addChild(sprite)
+            }
+        }
+    }
+    
+    private func pointFor(column: Int, row: Int) -> CGPoint {
+        return CGPoint(
+            x: CGFloat(column) * cellWidth! + cellWidth! / 2,
+            y: CGFloat(row) * cellHeight! + cellHeight! / 2)
+    }
     
     func touchDown(atPoint pos : CGPoint) {
         if let n = self.spinnyNode?.copy() as! SKShapeNode? {
@@ -106,5 +149,11 @@ class GameScene: SKScene {
         }
         
         self.lastUpdateTime = currentTime
+        
+        protoSquare!.evolveArray()
+        
+        gameLayer.removeAllChildren()
+        
+        attachSpritesTo(square: protoSquare!)
     }
 }

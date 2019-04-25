@@ -11,49 +11,67 @@ import Foundation
 class ProtoSquare {
     
     var squareDimension = 50
-    var array: Array2D<Bool>
+    var bodyArray: Array2D<Bool>
     var evolutionCycles = 1000
     var liveEvolutionDelay = 20.0
+    var cyclesLived = 0
     
-    let liveCell = "**"
-    let deadCell = "  "
+    private let liveCell = "**"
+    private let deadCell = "  "
     
-    
-    
-    init(dimension: Int, cycles: Int, delay: Double)
-    {
+    init(dimension: Int, cycles: Int, delay: Double) {
+        
         squareDimension = dimension
         evolutionCycles = cycles
         liveEvolutionDelay = delay
         
-        array = Array2D<Bool>(columns: dimension, rows: dimension)
+        bodyArray = Array2D<Bool>(columns: dimension, rows: dimension)
+        
+        // propagate the body of a square with "dead" and "alive" cells randomly
+        buildBody()
+    }
+    
+    private func buildBody () -> Void {
         
         for i in 0..<squareDimension {
+            
             for j in 0..<squareDimension {
-                array[i,j] = Bool.random()
+                
+                bodyArray[i,j] = Bool.random()
             }
         }
+    }
+    
+    func runFullEvolutionCycle () -> Void {
         
+        // fully evolve body through whole bunch of evolution cycles
         for i in 0...evolutionCycles {
-            print("i: \(i)")
             
-            printArray(array: array)
+            // print for debug
+            print("i: \(i)")
+            //printArray(array: array)
             
             evolveArray()
             
-            //Thread.sleep(forTimeInterval: liveEvolutionDelay)
+            Thread.sleep(forTimeInterval: liveEvolutionDelay)
         }
     }
     
     func printArray(array: Array2D<Bool>) -> Void {
+        
+        // printing array to cosole for debug
         for i in 0..<array.rows {
+            
             var str = ""
             
             for j in 0..<array.columns {
+                
                 if (array[i, j]!) {
+                    
                     str.append(liveCell)
                 }
                 else {
+                    
                     str.append(deadCell)
                 }
             }
@@ -63,64 +81,98 @@ class ProtoSquare {
     }
     
     func evolveArray() -> Void {
-        let oldState = array
         
-        for i in 0..<array.rows {
-            for j in 0..<array.columns {
-                array[i, j] = checkNewState(oldState: oldState, i: i, j: j)
+        // runs through whole body, checking every cell for 3 "alive"
+        // neighbours. if found - cell stays "alive"
+        let oldState = bodyArray
+        
+        for i in 0..<bodyArray.rows {
+            
+            for j in 0..<bodyArray.columns {
+                
+                bodyArray[i, j] = checkNewState(oldState: oldState, i: i, j: j)
+                cyclesLived += 1
             }
         }
     }
     
-    func checkNewState(oldState: Array2D<Bool>, i: Int, j: Int) -> Bool {
+    private func checkNewState(oldState: Array2D<Bool>, i: Int, j: Int) -> Bool {
+        
+        // checks the old state of cell. if cell is alive, and has 3 alive
+        // neighbours - remembers the new state of a cell as alive. Dead
+        // otherwise.
         var numOfAliveCells = 0
         
+        // model cosiders the body as kind of a sphere or pattern
+        // if you will. The row preciding to the firs row is the last row;
+        // the row next aftr the last row - is the first row.
+        // same goes for columns. Here, we check 8 cells around the cell [i,j]
+        // if i or j are 0s, then we check cells in last row or column.
+        // if i or j are at the end of row or column, we check cells in first
+        // column or row
         for x in (i - 1)...(i + 1) {
+            
             for y in (j - 1)...(j + 1) {
+                
                 var realI: Int
                 var realJ: Int
                 
                 if (x < 0) {
+                    
                     realI = oldState.rows-1
                 }
                 else if (x > oldState.rows-1) {
+                    
                     realI = 0
                 }
                 else {
+                    
                     realI = x
                 }
                 
                 if (y < 0) {
+                    
                     realJ = oldState.columns-1
                 }
                 else if (y > oldState.columns-1) {
+                    
                     realJ = 0
                 }
                 else {
+                    
                     realJ = y
                 }
                 
                 if (realI != i || realJ != j) {
+                    
                     if (oldState[realI, realJ]!) {
+                        
                         numOfAliveCells += 1
                     }
                 }
-                
             }
         }
         
+        // case if the cell was dead
         if (!oldState[i, j]!) {
+            
             if (numOfAliveCells == 3) {
+                // cell becomes alive if it has 3 alive neighbours
                 return true
             }
             
+            // stays dead
             return false
         }
         
+        // case if cell was alive
         if (numOfAliveCells == 2 || numOfAliveCells == 3) {
+            
+            // stays alive if it has 2 or 3 alive neighbours
             return true
         }
         
+        // dies in all other cases
         return false
     }
 }

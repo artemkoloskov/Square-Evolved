@@ -12,22 +12,34 @@ import GameplayKit
 
 class GameViewController: UIViewController {
 
+    let dimension = 50
+    let cycles = 500
+    let delay = 20.0
+    var sceneNode: GameScene?
+    var protoSquare: ProtoSquare?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        protoSquare = ProtoSquare(dimension: dimension, cycles: cycles, delay: delay)
         
         // Load 'GameScene.sks' as a GKScene. This provides gameplay related content
         // including entities and graphs.
         if let scene = GKScene(fileNamed: "GameScene") {
             
             // Get the SKScene from the loaded GKScene
-            if let sceneNode = scene.rootNode as! GameScene? {
-                
+            sceneNode = scene.rootNode as! GameScene?
+            
+            if sceneNode != nil {
                 // Copy gameplay related content over to the scene
-                sceneNode.entities = scene.entities
-                sceneNode.graphs = scene.graphs
+                sceneNode!.entities = scene.entities
+                sceneNode!.graphs = scene.graphs
+                sceneNode!.protoSquare = protoSquare
+                sceneNode!.cellWidth = CGFloat((Double(sceneNode!.size.width) - 10 * 2) / Double(protoSquare!.squareDimension))
+                sceneNode!.cellHeight = sceneNode!.cellWidth
                 
                 // Set the scale mode to scale to fit the window
-                sceneNode.scaleMode = .aspectFill
+                sceneNode!.scaleMode = .aspectFill
                 
                 // Present the scene
                 if let view = self.view as! SKView? {
@@ -38,8 +50,14 @@ class GameViewController: UIViewController {
                     view.showsFPS = true
                     view.showsNodeCount = true
                 }
+                
+                beginGame()
             }
         }
+    }
+    
+    private func beginGame() {
+        sceneNode!.attachSpritesTo(square: protoSquare!)
     }
 
     override var shouldAutorotate: Bool {
