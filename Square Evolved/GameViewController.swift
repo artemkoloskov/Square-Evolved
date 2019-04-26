@@ -11,59 +11,57 @@ import SpriteKit
 import GameplayKit
 
 class GameViewController: UIViewController {
-
-    let dimension = 50
-    let cycles = 500
+    
+    let dimension = 125
+    let width = 150
+    let height = 300
+    let cycles = 1000
     let delay = 20.0
-    var sceneNode: GameScene?
-    var protoSquare: ProtoSquare?
+    var scene: GameScene!
+    @IBOutlet weak var rerunButton: UIButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        protoSquare = ProtoSquare(dimension: dimension, cycles: cycles, delay: delay)
+        setup()
+    }
+    
+    @IBAction func rerunButtonPressed(_ sender: Any) {
+        setup()
+    }
+    
+    private func setup() {
+        let skView = view as! SKView
         
-        // Load 'GameScene.sks' as a GKScene. This provides gameplay related content
-        // including entities and graphs.
-        if let scene = GKScene(fileNamed: "GameScene") {
-            
-            // Get the SKScene from the loaded GKScene
-            sceneNode = scene.rootNode as! GameScene?
-            
-            if sceneNode != nil {
-                // Copy gameplay related content over to the scene
-                sceneNode!.entities = scene.entities
-                sceneNode!.graphs = scene.graphs
-                sceneNode!.protoSquare = protoSquare
-                sceneNode!.cellWidth = CGFloat((Double(sceneNode!.size.width) - 10 * 2) / Double(protoSquare!.squareDimension))
-                sceneNode!.cellHeight = sceneNode!.cellWidth
-                
-                // Set the scale mode to scale to fit the window
-                sceneNode!.scaleMode = .aspectFill
-                
-                // Present the scene
-                if let view = self.view as! SKView? {
-                    view.presentScene(sceneNode)
-                    
-                    view.ignoresSiblingOrder = true
-                    
-                    view.showsFPS = true
-                    view.showsNodeCount = true
-                }
-                
-                beginGame()
-            }
-        }
+        let protoSquare = ProtoSquare(width: width, height: height, cycles: cycles, delay: delay)
+        scene = GameScene(size: skView.bounds.size, square: protoSquare)
+        
+        // Set the scale mode to scale to fit the window
+        scene.scaleMode = .aspectFill
+        
+        // Present the scene
+        skView.presentScene(scene)
+        
+        skView.ignoresSiblingOrder = true
+        
+        skView.showsFPS = true
+        skView.showsNodeCount = true
+        
+        rerunButton.isHidden = false
+        
+        beginGame()
+        
+        //view.screenGrab()?.writeToFile(fileName: "newBody.png")
     }
     
     private func beginGame() {
-        sceneNode!.attachSpritesTo(square: protoSquare!)
+        scene.attachSpritesTo(square: scene.protoSquare!)
     }
-
+    
     override var shouldAutorotate: Bool {
         return true
     }
-
+    
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         if UIDevice.current.userInterfaceIdiom == .phone {
             return .allButUpsideDown
@@ -71,8 +69,38 @@ class GameViewController: UIViewController {
             return .all
         }
     }
-
+    
     override var prefersStatusBarHidden: Bool {
         return true
+    }
+}
+
+extension UIView {
+    func screenGrab() -> UIImage? {
+        // Uncomment this (and comment out the next statement) for retina screen capture
+        UIGraphicsBeginImageContextWithOptions(bounds.size, false, UIScreen.main.scale)
+        //UIGraphicsBeginImageContextWithOptions(bounds.size, false, 1.0)
+        
+        drawHierarchy(in: self.bounds, afterScreenUpdates: true)
+        
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        
+        UIGraphicsEndImageContext()
+        
+        return image
+    }
+}
+
+extension UIImage {
+    func writeToFile(fileName:String) {
+        let jpegData = self.pngData()
+        
+        let fileURL = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false).appendingPathComponent(fileName)
+        
+        do {
+            try jpegData?.write(to: fileURL, options: .atomic)
+        } catch {
+            print(error)
+        }
     }
 }

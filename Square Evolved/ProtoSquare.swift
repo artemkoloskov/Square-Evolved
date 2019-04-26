@@ -11,10 +11,12 @@ import Foundation
 class ProtoSquare {
     
     var squareDimension = 50
+    var bodyWidth = 50
+    var bodyHeight = 50
     var bodyArray: Array2D<Bool>
     var evolutionCycles = 1000
     var liveEvolutionDelay = 20.0
-    var cyclesLived = 0
+    var age = 0
     
     private let liveCell = "**"
     private let deadCell = "  "
@@ -31,11 +33,24 @@ class ProtoSquare {
         buildBody()
     }
     
+    init(width: Int, height: Int, cycles: Int, delay: Double) {
+        
+        bodyWidth = width
+        bodyHeight = height
+        evolutionCycles = cycles
+        liveEvolutionDelay = delay
+        
+        bodyArray = Array2D<Bool>(columns: width, rows: height)
+        
+        // propagate the body of a square with "dead" and "alive" cells randomly
+        buildBody()
+    }
+    
     private func buildBody () -> Void {
         
-        for i in 0..<squareDimension {
+        for i in 0..<bodyArray.rows {
             
-            for j in 0..<squareDimension {
+            for j in 0..<bodyArray.columns {
                 
                 bodyArray[i,j] = Bool.random()
             }
@@ -86,14 +101,16 @@ class ProtoSquare {
         // neighbours. if found - cell stays "alive"
         let oldState = bodyArray
         
-        for i in 0..<bodyArray.rows {
-            
-            for j in 0..<bodyArray.columns {
-                
-                bodyArray[i, j] = checkNewState(oldState: oldState, i: i, j: j)
-                cyclesLived += 1
+        if age < evolutionCycles {
+            for i in 0..<bodyArray.rows {
+                for j in 0..<bodyArray.columns {
+                    bodyArray[i, j] = checkNewState(oldState: oldState, i: i, j: j)
+                    
+                }
             }
         }
+        
+        age += 1
     }
     
     private func checkNewState(oldState: Array2D<Bool>, i: Int, j: Int) -> Bool {
