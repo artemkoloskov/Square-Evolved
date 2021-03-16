@@ -13,8 +13,8 @@ import GameplayKit
 class GameViewController: UIViewController {
     
     let dimension = 125
-    let width = 150
-    let height = 300
+    let width = 70
+    let height = 140
     let cycles = 1000
     let delay = 20.0
     var scene: GameScene!

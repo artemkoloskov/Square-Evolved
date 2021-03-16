@@ -10,7 +10,6 @@ import Foundation
 
 class ProtoSquare {
     
-    var squareDimension = 50
     var bodyWidth = 50
     var bodyHeight = 50
     var bodyArray: Array2D<Bool>
@@ -21,16 +20,8 @@ class ProtoSquare {
     private let liveCell = "**"
     private let deadCell = "  "
     
-    init(dimension: Int, cycles: Int, delay: Double) {
-        
-        squareDimension = dimension
-        evolutionCycles = cycles
-        liveEvolutionDelay = delay
-        
-        bodyArray = Array2D<Bool>(columns: dimension, rows: dimension)
-        
-        // propagate the body of a square with "dead" and "alive" cells randomly
-        buildBody()
+    convenience init(dimension: Int, cycles: Int, delay: Double) {
+        self.init(width: dimension, height: dimension, cycles: cycles, delay: delay)
     }
     
     init(width: Int, height: Int, cycles: Int, delay: Double) {
